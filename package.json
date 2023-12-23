@@ -1,0 +1,15 @@
+{
+  "name": "abroad-calculator",
+  "version": "1.0.0",
+  "description": "A minimal Electron application",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "repository": "https://github.com/Alex-Dolid/AbroadCalculator",
+  "keywords": ["Electron", "abroad", "calculator"],
+  "author": "Alex Dolid <dolid.sasha@gmail.com>",
+  "devDependencies": {
+    "electron": "^28.1.0"
+  }
+}
