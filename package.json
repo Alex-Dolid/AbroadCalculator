@@ -3,7 +3,11 @@
   "version": "1.0.0",
   "description": "A minimal Electron application",
   "repository": "https://github.com/Alex-Dolid/AbroadCalculator",
-  "keywords": ["Electron", "abroad", "calculator"],
+  "keywords": [
+    "Electron",
+    "abroad",
+    "calculator"
+  ],
   "author": "Alex Dolid <dolid.sasha@gmail.com>",
   "main": "dist-electron/main.js",
   "scripts": {
@@ -14,6 +18,10 @@
     "fmt": "prettier --write \"**/*.js\" \"**/*.json\" \"**/*.md\" \"**/*.ts\" \"**/*.tsx\""
   },
   "dependencies": {
+    "@emotion/react": "^11.11.3",
+    "@emotion/styled": "^11.11.0",
+    "@mui/icons-material": "^5.15.1",
+    "@mui/joy": "5.0.0-beta.19",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
@@ -23,19 +31,19 @@
     "@typescript-eslint/eslint-plugin": "^6.6.0",
     "@typescript-eslint/parser": "^6.6.0",
     "@vitejs/plugin-react": "^4.0.4",
+    "electron": "^26.1.0",
+    "electron-builder": "^24.6.4",
     "eslint": "^8.48.0",
-    "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-react-refresh": "^0.4.3",
     "eslint-config-metarhia": "^8.2.2",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.28.1",
     "eslint-plugin-prettier": "^5.0.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.3",
+    "prettier": "^3.1.1",
     "typescript": "^5.2.2",
     "vite": "^4.4.9",
-    "electron": "^26.1.0",
-    "electron-builder": "^24.6.4",
     "vite-plugin-electron": "^0.14.0",
-    "vite-plugin-electron-renderer": "^0.14.5",
-    "prettier": "^3.1.1"
+    "vite-plugin-electron-renderer": "^0.14.5"
   }
 }
