@@ -1,39 +1,19 @@
 import React from 'react';
-import { v4 } from 'uuid';
 import IconButton from '@mui/joy/IconButton';
 import Box from '@mui/joy/Box';
-import Link from '@mui/joy/Link';
 import Table from '@mui/joy/Table';
 import Sheet from '@mui/joy/Sheet';
 import Typography from '@mui/joy/Typography';
 
 import EditIcon from '@mui/icons-material/Edit';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
+import { Journey } from '../types';
 
-const rows = [
-  {
-    id: v4(),
-    name: 'USA',
-    date: new Date().toJSON(),
-    days: 12,
-  },
-  {
-    id: v4(),
-    name: 'Canada',
-    date: new Date().toJSON(),
-    days: 3,
-  },
-  {
-    id: v4(),
-    name: 'Ukraine',
-    date: new Date().toJSON(),
-    days: 110,
-  },
-];
+type Props = {
+  data: Journey[];
+};
 
-export default function JourneyTable() {
-  const [selected, setSelected] = React.useState<readonly string[]>([]);
-
+export default function JourneyTable({ data }: Props): JSX.Element {
   return (
     <React.Fragment>
       <Sheet
@@ -70,13 +50,13 @@ export default function JourneyTable() {
             </tr>
           </thead>
           <tbody>
-            {rows.map((row) => (
+            {data.map((row) => (
               <tr key={row.id}>
                 <td style={{ paddingLeft: 30 }}>
                   <Typography level="body-xs">{row.name}</Typography>
                 </td>
                 <td>
-                  <Typography level="body-xs">{row.date}</Typography>
+                  <Typography level="body-xs">{new Date(row.startDate).toDateString()}</Typography>
                 </td>
                 <td>
                   <Typography level="body-xs">{row.days}</Typography>

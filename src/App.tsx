@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
+import { v4 } from 'uuid';
 import { sub } from 'date-fns';
-import { CssVarsProvider } from '@mui/joy/styles';
-import CssBaseline from '@mui/joy/CssBaseline';
 import Box from '@mui/joy/Box';
 import Button from '@mui/joy/Button';
 import Typography from '@mui/joy/Typography';
@@ -19,6 +18,27 @@ import {
 
 import './App.css';
 
+const data = [
+  {
+    id: v4(),
+    name: 'USA',
+    date: new Date().toJSON(),
+    days: 12,
+  },
+  {
+    id: v4(),
+    name: 'Canada',
+    date: new Date().toJSON(),
+    days: 3,
+  },
+  {
+    id: v4(),
+    name: 'Ukraine',
+    date: new Date().toJSON(),
+    days: 110,
+  },
+];
+
 function App() {
   const [isAuth, setIsAuth] = useState<boolean>(true);
   const [isAccessDenied, setIsAccessDenied] = useState<boolean>(false);
@@ -28,8 +48,7 @@ function App() {
   const availableDays = 240;
 
   return (
-    <CssVarsProvider disableTransitionOnChange>
-      <CssBaseline />
+    <>
       <Header />
       <Box sx={{ display: 'flex' }}>
         <Box
@@ -78,12 +97,13 @@ function App() {
             startCycleDate={startCycleDate}
             availableDays={availableDays}
           />
-          <JourneyTable />
+          <JourneyTable data={data} />
           <div key="modals">
             <JourneyModalDialog
               isOpen={isOpenJourneyModal}
               onCancel={setIsOpenJourneyModal.bind(null, false)}
               onSubmit={setIsOpenJourneyModal.bind(null, false)}
+              today={today}
             />
             <AuthModalDialog
               isOpen={isAuth}
@@ -97,7 +117,7 @@ function App() {
           </div>
         </Box>
       </Box>
-    </CssVarsProvider>
+    </>
   );
 }
 
