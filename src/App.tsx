@@ -17,6 +17,7 @@ import {
 } from './components';
 
 import './App.css';
+import { Journey } from './types';
 
 const data = [
   {
@@ -43,9 +44,16 @@ function App() {
   const [isAuth, setIsAuth] = useState<boolean>(true);
   const [isAccessDenied, setIsAccessDenied] = useState<boolean>(false);
   const [isOpenJourneyModal, setIsOpenJourneyModal] = useState<boolean>(false);
+  const [availableDays, setAvailableDays] = useState<number>(240);
   const today = new Date();
   const startCycleDate = sub(today, { years: 1 });
-  const availableDays = 240;
+
+  const onEdit = (id: Journey['id']) => {
+    
+  }
+  const onRemove = (id: Journey['id']) => {
+
+  }
 
   return (
     <>
@@ -97,7 +105,7 @@ function App() {
             startCycleDate={startCycleDate}
             availableDays={availableDays}
           />
-          <JourneyTable data={data} />
+          <JourneyTable data={data} onEdit={onEdit} onRemove={onRemove} />
           <div key="modals">
             <JourneyModalDialog
               isOpen={isOpenJourneyModal}

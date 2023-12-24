@@ -11,9 +11,11 @@ import { Journey } from '../types';
 
 type Props = {
   data: Journey[];
+  onEdit: (id: Journey['id']) => void;
+  onRemove: (id: Journey['id']) => void;
 };
 
-export default function JourneyTable({ data }: Props): JSX.Element {
+export default function JourneyTable({ data, onEdit, onRemove }: Props): JSX.Element {
   return (
     <React.Fragment>
       <Sheet
@@ -50,23 +52,23 @@ export default function JourneyTable({ data }: Props): JSX.Element {
             </tr>
           </thead>
           <tbody>
-            {data.map((row) => (
-              <tr key={row.id}>
+            {data.map((item) => (
+              <tr key={item.id}>
                 <td style={{ paddingLeft: 30 }}>
-                  <Typography level="body-xs">{row.name}</Typography>
+                  <Typography level="body-xs">{item.name}</Typography>
                 </td>
                 <td>
-                  <Typography level="body-xs">{new Date(row.startDate).toDateString()}</Typography>
+                  <Typography level="body-xs">{new Date(item.startDate).toDateString()}</Typography>
                 </td>
                 <td>
-                  <Typography level="body-xs">{row.days}</Typography>
+                  <Typography level="body-xs">{item.days}</Typography>
                 </td>
                 <td>
                   <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                    <IconButton color="warning">
+                    <IconButton color="warning" onClick={() => onEdit(item.id)}>
                       <EditIcon />
                     </IconButton>
-                    <IconButton color="danger">
+                    <IconButton color="danger" onClick={() => onRemove(item.id)}>
                       <HighlightOffIcon />
                     </IconButton>
                   </Box>
