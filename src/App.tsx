@@ -5,20 +5,21 @@ import Box from '@mui/joy/Box';
 import Button from '@mui/joy/Button';
 import Typography from '@mui/joy/Typography';
 
-import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
-import { JourneyTable, Header } from './components';
+import { JourneyTable, Header, JourneyModalDialog } from './components';
 
 import './App.css';
 
 function App() {
   const [count, setCount] = useState(0);
+  const [isOpenJourneyModal, setIsOpenJourneyModal] = useState<boolean>(false);
 
   return (
     <CssVarsProvider disableTransitionOnChange>
       <CssBaseline />
       <Header />
-      <Box sx={{ display: 'flex', minHeight: '100dvh' }}>
+      <Box sx={{ display: 'flex' }}>
         <Box
           component="main"
           className="MainContent"
@@ -34,7 +35,6 @@ function App() {
             display: 'flex',
             flexDirection: 'column',
             minWidth: 0,
-            height: '100dvh',
             gap: 1,
           }}
         >
@@ -50,15 +50,21 @@ function App() {
             }}
           >
             <Typography level="h2" component="h1">
-              Orders
+              Journeys
             </Typography>
             <Button
               color="primary"
-              startDecorator={<DownloadRoundedIcon />}
+              startDecorator={<AddCircleOutlineIcon />}
               size="sm"
+              onClick={setIsOpenJourneyModal.bind(null, true)}
             >
-              Download PDF
+              Add new journey
             </Button>
+            <JourneyModalDialog
+              isOpen={isOpenJourneyModal}
+              onClose={setIsOpenJourneyModal.bind(null, false)}
+              onSubmit={setIsOpenJourneyModal.bind(null, false)}
+            />
           </Box>
           <JourneyTable />
         </Box>
