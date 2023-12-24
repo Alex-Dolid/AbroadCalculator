@@ -1,35 +1,35 @@
 import React from 'react';
-import { ColorPaletteProp } from '@mui/joy/styles';
+import { v4 } from 'uuid';
+import IconButton from '@mui/joy/IconButton';
 import Box from '@mui/joy/Box';
-import Chip from '@mui/joy/Chip';
 import Link from '@mui/joy/Link';
 import Table from '@mui/joy/Table';
 import Sheet from '@mui/joy/Sheet';
 import Typography from '@mui/joy/Typography';
 
-import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
-import BlockIcon from '@mui/icons-material/Block';
-import AutorenewRoundedIcon from '@mui/icons-material/AutorenewRounded';
+import EditIcon from '@mui/icons-material/Edit';
+import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 
 const rows = [
   {
-    id: 'INV-1234',
-    date: 'Feb 3, 2023',
-    status: 'Refunded',
+    id: v4(),
+    name: 'USA',
+    date: new Date().toJSON(),
+    days: 12,
   },
   {
-    id: 'INV-1233',
-    date: 'Feb 3, 2023',
-    status: 'Paid',
+    id: v4(),
+    name: 'Canada',
+    date: new Date().toJSON(),
+    days: 3,
   },
   {
-    id: 'INV-1232',
-    date: 'Feb 3, 2023',
-    status: 'Refunded',
+    id: v4(),
+    name: 'Ukraine',
+    date: new Date().toJSON(),
+    days: 110,
   },
 ];
-
-type Order = 'asc' | 'desc';
 
 export default function JourneyTable() {
   const [selected, setSelected] = React.useState<readonly string[]>([]);
@@ -63,9 +63,9 @@ export default function JourneyTable() {
         >
           <thead>
             <tr>
-              <th style={{ width: 120, padding: '12px 6px', paddingLeft: 30 }}>Invoice</th>
+              <th style={{ width: 120, padding: '12px 6px', paddingLeft: 30 }}>Name</th>
               <th style={{ width: 140, padding: '12px 6px' }}>Date</th>
-              <th style={{ width: 140, padding: '12px 6px' }}>Status</th>
+              <th style={{ width: 140, padding: '12px 6px' }}>Days</th>
               <th style={{ width: 140, padding: '12px 6px' }}>Actions</th>
             </tr>
           </thead>
@@ -73,38 +73,22 @@ export default function JourneyTable() {
             {rows.map((row) => (
               <tr key={row.id}>
                 <td style={{ paddingLeft: 30 }}>
-                  <Typography level="body-xs">{row.id}</Typography>
+                  <Typography level="body-xs">{row.name}</Typography>
                 </td>
                 <td>
                   <Typography level="body-xs">{row.date}</Typography>
                 </td>
                 <td>
-                  <Chip
-                    variant="soft"
-                    size="sm"
-                    startDecorator={
-                      {
-                        Paid: <CheckRoundedIcon />,
-                        Refunded: <AutorenewRoundedIcon />,
-                        Cancelled: <BlockIcon />,
-                      }[row.status]
-                    }
-                    color={
-                      {
-                        Paid: 'success',
-                        Refunded: 'neutral',
-                        Cancelled: 'danger',
-                      }[row.status] as ColorPaletteProp
-                    }
-                  >
-                    {row.status}
-                  </Chip>
+                  <Typography level="body-xs">{row.days}</Typography>
                 </td>
                 <td>
                   <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                    <Link level="body-xs" component="button">
-                      Download
-                    </Link>
+                    <IconButton color="warning">
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton color="danger">
+                      <HighlightOffIcon />
+                    </IconButton>
                   </Box>
                 </td>
               </tr>

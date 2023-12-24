@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { sub } from 'date-fns';
 import { CssVarsProvider } from '@mui/joy/styles';
 import CssBaseline from '@mui/joy/CssBaseline';
 import Box from '@mui/joy/Box';
@@ -7,13 +8,24 @@ import Typography from '@mui/joy/Typography';
 
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
-import { JourneyTable, Header, JourneyModalDialog } from './components';
+import {
+  JourneyTable,
+  Header,
+  JourneyModalDialog,
+  AccessDeniedModalDialog,
+  AuthModalDialog,
+  StatisticsPanel,
+} from './components';
 
 import './App.css';
 
 function App() {
-  const [count, setCount] = useState(0);
+  const [isAuth, setIsAuth] = useState<boolean>(true);
+  const [isAccessDenied, setIsAccessDenied] = useState<boolean>(false);
   const [isOpenJourneyModal, setIsOpenJourneyModal] = useState<boolean>(false);
+  const today = new Date();
+  const startCycleDate = sub(today, { years: 1 });
+  const availableDays = 240;
 
   return (
     <CssVarsProvider disableTransitionOnChange>
@@ -60,13 +72,29 @@ function App() {
             >
               Add new journey
             </Button>
+          </Box>
+          <StatisticsPanel
+            today={today}
+            startCycleDate={startCycleDate}
+            availableDays={availableDays}
+          />
+          <JourneyTable />
+          <div key="modals">
             <JourneyModalDialog
               isOpen={isOpenJourneyModal}
-              onClose={setIsOpenJourneyModal.bind(null, false)}
+              onCancel={setIsOpenJourneyModal.bind(null, false)}
               onSubmit={setIsOpenJourneyModal.bind(null, false)}
             />
-          </Box>
-          <JourneyTable />
+            <AuthModalDialog
+              isOpen={isAuth}
+              onCancel={() => {
+                setIsAuth(false);
+                setIsAccessDenied(true);
+              }}
+              onSubmit={setIsAuth.bind(null, false)}
+            />
+            <AccessDeniedModalDialog isOpen={isAccessDenied} />
+          </div>
         </Box>
       </Box>
     </CssVarsProvider>
