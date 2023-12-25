@@ -1,5 +1,7 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'node:path';
+import Store from 'electron-store';
+import { StoreSchema, Stores } from '../types';
 
 // The built directory structure
 //
@@ -26,6 +28,7 @@ function createWindow() {
     height: 800,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: true,
     },
   });
 
@@ -60,4 +63,46 @@ app.on('activate', () => {
   }
 });
 
-app.whenReady().then(createWindow);
+function processStore() {
+  const UUID_V4_PATTERN =
+    '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$';
+
+  const journeysSchema = {
+    type: 'object',
+    patternProperties: {
+      [UUID_V4_PATTERN]: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'string',
+            pattern: UUID_V4_PATTERN,
+          },
+          name: {
+            type: 'string',
+            minLength: 3,
+            maxLength: 30,
+          },
+          startDate: { type: 'string' },
+          endDate: { type: 'string' },
+        },
+        required: ['id', 'name', 'startDate', 'endDate'],
+        additionalProperties: false,
+      },
+    },
+  };
+
+  const schema = { [Stores.Journeys]: journeysSchema };
+  const store = new Store<StoreSchema>({ schema, defaults: { [Stores.Journeys]: {} } });
+
+  ipcMain.handle('store.get', (event, key) => {
+    return store.get(key);
+  });
+  ipcMain.handle('store.set', (event, data) => {
+    return store.set(data);
+  });
+  ipcMain.handle('store.delete', (event, key) => {
+    return store.delete(key);
+  });
+}
+
+app.whenReady().then(processStore).then(createWindow);

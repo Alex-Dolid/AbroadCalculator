@@ -1,55 +1,160 @@
-import React, { useState } from 'react';
-import { v4 } from 'uuid';
-import { sub } from 'date-fns';
+import React, { useEffect, useMemo, useState } from 'react';
+import { differenceInDays, getOverlappingDaysInIntervals, sub } from 'date-fns';
 import Box from '@mui/joy/Box';
 import Button from '@mui/joy/Button';
 import Typography from '@mui/joy/Typography';
+import store from './store';
 
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
 import {
-  JourneyTable,
+  AccessDeniedModalDialog,
+  AlertDialogModal,
+  AuthModalDialog,
   Header,
   JourneyModalDialog,
-  AccessDeniedModalDialog,
-  AuthModalDialog,
+  JourneyTable,
+  SnackbarHideDuration,
   StatisticsPanel,
 } from './components';
 
 import './App.css';
-import { Journey } from './types';
+import { JourneyDataItem, JourneyStatus, PreparedJourneyStoreItem } from '../types';
 
-const data = [
-  {
-    id: v4(),
-    name: 'USA',
-    date: new Date().toJSON(),
-    days: 12,
-  },
-  {
-    id: v4(),
-    name: 'Canada',
-    date: new Date().toJSON(),
-    days: 3,
-  },
-  {
-    id: v4(),
-    name: 'Ukraine',
-    date: new Date().toJSON(),
-    days: 110,
-  },
-];
+const MAX_AVAILABLE_DAYS_PER_CYCLE = 240;
+
+const computeFields = (
+  data: [PreparedJourneyStoreItem['id'], PreparedJourneyStoreItem][],
+): [JourneyDataItem['id'], JourneyDataItem][] => {
+  const today = new Date();
+  const startCycleDate = sub(today, { years: 1 });
+  return data.map(([id, item]) => {
+    const total = differenceInDays(item.endDate, item.startDate);
+    const _period = getOverlappingDaysInIntervals(
+      { start: item.startDate, end: item.endDate },
+      { start: startCycleDate, end: today },
+    );
+    const period = _period > total ? _period - 1 : _period;
+    return [
+      id,
+      {
+        ...item,
+        days: {
+          total,
+          period,
+        },
+        status:
+          period === total
+            ? JourneyStatus.Full
+            : period < total && period !== 0
+              ? JourneyStatus.Partial
+              : JourneyStatus.None,
+      },
+    ];
+  });
+};
+
+const getStoreErrorMessage = (error: unknown): string => {
+  console.error(error);
+  if (error instanceof Error) return error.message;
+  if (Array.isArray(error)) return error[0];
+  return 'Unknown Error!';
+};
+const initSnackbarState = { isOpenSnackbar: false, snackbarMessage: '' };
 
 function App() {
+  const [data, setData] = useState(new Map<JourneyDataItem['id'], JourneyDataItem>([]));
   const [isAuth, setIsAuth] = useState<boolean>(true);
   const [isAccessDenied, setIsAccessDenied] = useState<boolean>(false);
   const [isOpenJourneyModal, setIsOpenJourneyModal] = useState<boolean>(false);
-  const [availableDays, setAvailableDays] = useState<number>(240);
+  const [isOpenConfirmationModal, setIsOpenConfirmationModal] = useState<boolean>(false);
+  const [editableItemId, setEditableItemId] = useState<JourneyDataItem['id'] | null>(null);
+  const [{ isOpenSnackbar, snackbarMessage }, setSnackbar] = useState({ ...initSnackbarState });
+
   const today = new Date();
   const startCycleDate = sub(today, { years: 1 });
 
-  const onEdit = (id: Journey['id']) => {};
-  const onRemove = (id: Journey['id']) => {};
+  const availableDays = useMemo(() => {
+    return [...data.values()].reduce(
+      (acc, curr) => (acc -= curr.days.period),
+      MAX_AVAILABLE_DAYS_PER_CYCLE,
+    );
+  }, [data]);
+  const editableItemData = useMemo(() => {
+    const editableItem = editableItemId ? data.get(editableItemId) : null;
+    return editableItem
+      ? {
+          name: editableItem.name,
+          startDate: editableItem.startDate,
+          endDate: editableItem.endDate,
+        }
+      : null;
+  }, [editableItemId]);
+
+  const openSnackbar = (msg: string) => {
+    setSnackbar({ isOpenSnackbar: true, snackbarMessage: msg });
+  };
+  const fetchNewData = async () => {
+    try {
+      const journeys = await store.journeys.get();
+      setData(new Map(computeFields(journeys)));
+    } catch (error) {
+      openSnackbar(getStoreErrorMessage(error));
+    }
+  };
+  const openJourneyModal = () => setIsOpenJourneyModal(true);
+  const closeJourneyModal = () => setIsOpenJourneyModal(false);
+  const onEdit = (id: JourneyDataItem['id']) => {
+    setEditableItemId(id);
+    openJourneyModal();
+  };
+  const onRemove = async () => {
+    if (!editableItemId) return;
+    try {
+      await store.journeys.remove(editableItemId);
+      await fetchNewData();
+    } catch (error) {
+      openSnackbar(getStoreErrorMessage(error));
+    } finally {
+      onCancelRemove();
+    }
+  };
+  const openConfirmationModel = (id: JourneyDataItem['id']) => {
+    setEditableItemId(id);
+    setIsOpenConfirmationModal(true);
+  };
+  const onCancelRemove = () => {
+    setEditableItemId(null);
+    setIsOpenConfirmationModal(false);
+  };
+  const onCancelJourneyModal = () => {
+    closeJourneyModal();
+    setEditableItemId(null);
+  };
+  const onSubmitJourneyModal = async (
+    data: Pick<JourneyDataItem, 'name' | 'startDate' | 'endDate'>,
+  ) => {
+    closeJourneyModal();
+    try {
+      if (editableItemId) {
+        await store.journeys.update(editableItemId, data);
+        await fetchNewData();
+        return;
+      }
+
+      await store.journeys.create(data);
+      await fetchNewData();
+    } catch (error) {
+      openSnackbar(getStoreErrorMessage(error));
+    }
+  };
+
+  useEffect(() => {
+    // const unsubscribe = store.journeys.onDidChange(fetchNewData);
+    fetchNewData();
+
+    // return unsubscribe;
+  }, []);
 
   return (
     <>
@@ -91,7 +196,7 @@ function App() {
               color="primary"
               startDecorator={<AddCircleOutlineIcon />}
               size="sm"
-              onClick={setIsOpenJourneyModal.bind(null, true)}
+              onClick={openJourneyModal}
             >
               Add new journey
             </Button>
@@ -101,13 +206,19 @@ function App() {
             startCycleDate={startCycleDate}
             availableDays={availableDays}
           />
-          <JourneyTable data={data} onEdit={onEdit} onRemove={onRemove} />
+          <JourneyTable
+            data={[...data.values()]}
+            onEdit={onEdit}
+            onRemove={openConfirmationModel}
+          />
           <div key="modals">
             <JourneyModalDialog
               isOpen={isOpenJourneyModal}
-              onCancel={setIsOpenJourneyModal.bind(null, false)}
-              onSubmit={setIsOpenJourneyModal.bind(null, false)}
+              onCancel={onCancelJourneyModal}
+              onSubmit={onSubmitJourneyModal}
               today={today}
+              data={editableItemData}
+              openSnackbar={openSnackbar}
             />
             <AuthModalDialog
               isOpen={isAuth}
@@ -118,7 +229,17 @@ function App() {
               onSubmit={setIsAuth.bind(null, false)}
             />
             <AccessDeniedModalDialog isOpen={isAccessDenied} />
+            <AlertDialogModal
+              isOpen={isOpenConfirmationModal}
+              onCancel={onCancelRemove}
+              onConfirm={onRemove}
+            />
           </div>
+          <SnackbarHideDuration
+            isOpen={isOpenSnackbar}
+            onClose={() => setSnackbar({ ...initSnackbarState })}
+            message={snackbarMessage}
+          />
         </Box>
       </Box>
     </>

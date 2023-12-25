@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { v4 } from 'uuid';
 import { sub, differenceInDays } from 'date-fns';
+
 import Button from '@mui/joy/Button';
 import FormControl from '@mui/joy/FormControl';
 import FormLabel from '@mui/joy/FormLabel';
@@ -12,19 +12,21 @@ import DialogContent from '@mui/joy/DialogContent';
 import DialogActions from '@mui/joy/DialogActions';
 import Stack from '@mui/joy/Stack';
 import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker';
-import { Journey } from '../types';
+
+import { JourneyDataItem } from '../../types';
 
 type Props = {
   isOpen: boolean;
   onCancel: () => void;
-  onSubmit: (data: Journey) => void;
+  onSubmit: (data: Pick<JourneyDataItem, 'name' | 'startDate' | 'endDate'>) => void;
+  openSnackbar: (msg: string) => void;
 
   today: Date;
-  data: Journey | null;
+  data: Pick<JourneyDataItem, 'name' | 'startDate' | 'endDate'> | null;
 };
 
 type StateData = {
-  name: Journey['name'];
+  name: JourneyDataItem['name'];
   startDate: Date;
   endDate: Date;
 };
@@ -34,12 +36,13 @@ export default function JourneyModalDialog({
   onCancel,
   onSubmit,
   today,
-  data,
+  data = {},
+  openSnackbar,
 }: Props): JSX.Element {
   const editableInitState = {
     name: data?.name,
-    startDate: data ? new Date(data.startDate) : undefined,
-    endDate: data ? new Date(data.endDate) : undefined,
+    startDate: data ? data.startDate : undefined,
+    endDate: data ? data.endDate : undefined,
   };
   const initState = {
     name: editableInitState.name || '',
@@ -47,9 +50,6 @@ export default function JourneyModalDialog({
     endDate: editableInitState.endDate || today,
   };
   const [{ name, startDate, endDate }, setState] = useState<StateData>({ ...initState });
-
-  const days =
-    startDate && endDate ? (differenceInDays(endDate, startDate) as unknown as number) : 0;
 
   const discardChanges = () => {
     setState((prevState) => ({ ...prevState, ...initState }));
@@ -62,31 +62,33 @@ export default function JourneyModalDialog({
   const saveChanges = () => {
     const preparedData = {
       name: name.trim(),
-      startDate: new Date(startDate).toJSON(),
-      endDate: new Date(endDate).toJSON(),
-      days,
+      startDate,
+      endDate,
     };
 
-    if (data) {
-      if (preparedData && startDate && endDate) {
-        onSubmit({ ...data, ...preparedData });
-      }
+    if (!preparedData.name || preparedData.name.length < 3) {
+      openSnackbar('Name is required and must be at least 3 characters!');
       return;
     }
 
-    onSubmit({ ...preparedData, id: v4() });
+    if (!preparedData.startDate || !preparedData.endDate) {
+      openSnackbar('Dates are required!');
+      return;
+    }
+
+    if (!(differenceInDays(preparedData.endDate, preparedData.startDate) >= 1)) {
+      openSnackbar('The difference in days must be at least 1 day between start and end dates!');
+      return;
+    }
+
+    onSubmit({ ...data, ...preparedData });
   };
 
   useEffect(() => {
     if (!data) {
       discardChanges();
     } else {
-      const newStateData = {
-        name: data.name,
-        startDate: new Date(data.startDate),
-        endDate: new Date(data.endDate),
-      };
-      setState((prevState) => ({ ...prevState, ...newStateData }));
+      setState((prevState) => ({ ...prevState, ...data }));
     }
   }, [data]);
 
@@ -119,7 +121,7 @@ export default function JourneyModalDialog({
               <DesktopDatePicker
                 value={startDate}
                 onChange={(newValue) =>
-                  setState((prevState) => ({ ...prevState, startDate: newValue }))
+                  setState((prevState) => ({ ...prevState, startDate: newValue || new Date() }))
                 }
                 views={['year', 'month', 'day']}
                 format="dd/MM/yyyy"
@@ -128,7 +130,7 @@ export default function JourneyModalDialog({
               <DesktopDatePicker
                 value={endDate}
                 onChange={(newValue) =>
-                  setState((prevState) => ({ ...prevState, endDate: newValue }))
+                  setState((prevState) => ({ ...prevState, endDate: newValue || new Date() }))
                 }
                 views={['year', 'month', 'day']}
                 format="dd/MM/yyyy"
