@@ -48,12 +48,8 @@ function App() {
   const today = new Date();
   const startCycleDate = sub(today, { years: 1 });
 
-  const onEdit = (id: Journey['id']) => {
-    
-  }
-  const onRemove = (id: Journey['id']) => {
-
-  }
+  const onEdit = (id: Journey['id']) => {};
+  const onRemove = (id: Journey['id']) => {};
 
   return (
     <>
